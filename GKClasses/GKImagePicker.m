@@ -122,7 +122,7 @@
     actionSheet.delegate = self;
     
     if (UIUserInterfaceIdiomPad == UI_USER_INTERFACE_IDIOM()) {
-        [actionSheet showFromRect:self.popoverView.frame inView:self.presentingViewController.view animated:YES];
+        [actionSheet showFromRect:[self calcPopoverSourceRect] inView:self.presentingViewController.view animated:YES];
     } else {
         if (self.presentingViewController.navigationController.toolbar) {
             [actionSheet showFromToolbar:self.presentingViewController.navigationController.toolbar];
@@ -132,15 +132,19 @@
     }
 }
 
+- (CGRect)calcPopoverSourceRect
+{
+    return [self.popoverView convertRect:self.popoverView.frame toView:self.presentingViewController.view];
+}
+
 - (void)presentImagePickerController
 {
     // we use popover only if a) we are on iPad and b) we don't prefer full screen or c) system version is less than 7
     _usePopover = UI_USER_INTERFACE_IDIOM() == UIUserInterfaceIdiomPad && (!self.preferFullScreen || SYSTEM_VERSION_LESS_THAN(@"7.0"));
     
     if (_usePopover) {
-        
         self.popoverController = [[UIPopoverController alloc] initWithContentViewController:self.imagePickerController];
-        [self.popoverController presentPopoverFromRect:self.popoverView.frame
+        [self.popoverController presentPopoverFromRect:[self calcPopoverSourceRect]
                                                 inView:self.presentingViewController.view
                               permittedArrowDirections:UIPopoverArrowDirectionAny
                                               animated:YES];
