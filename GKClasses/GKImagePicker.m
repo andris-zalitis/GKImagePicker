@@ -10,6 +10,11 @@
 
 #import "GKImageCropViewController.h"
 
+
+// iOS version helper
+#define SYSTEM_VERSION_LESS_THAN(v)  ([[[UIDevice currentDevice] systemVersion] compare:v options:NSNumericSearch] == NSOrderedAscending)
+
+
 @interface GKImagePicker ()<UIImagePickerControllerDelegate, UINavigationControllerDelegate, GKImageCropControllerDelegate, UIActionSheetDelegate>
 @property (nonatomic, weak) UIViewController *presentingViewController;
 @property (nonatomic, weak) UIView *popoverView;
@@ -19,6 +24,9 @@
 @end
 
 @implementation GKImagePicker
+{
+    BOOL _usePopover;
+}
 
 #pragma mark -
 #pragma mark Getter/Setter
@@ -33,6 +41,8 @@
         
         self.cropSize = CGSizeMake(320, 320);
         self.resizeableCropArea = NO;
+        // use popovers on iPad by default as currently
+        self.preferFullScreen = YES;
     }
     return self;
 }
@@ -41,7 +51,7 @@
 # pragma mark Private Methods
 
 - (void)_hideController{
-    if (UIUserInterfaceIdiomPad == UI_USER_INTERFACE_IDIOM()) {
+    if (_usePopover) {
         [self.popoverController dismissPopoverAnimated:YES];
     } else {
         [self.imagePickerController dismissViewControllerAnimated:YES completion:nil];
@@ -69,11 +79,13 @@
 - (void)imagePickerController:(UIImagePickerController *)picker didFinishPickingMediaWithInfo:(NSDictionary *)info{
 
     GKImageCropViewController *cropController = [[GKImageCropViewController alloc] init];
-#if __IPHONE_OS_VERSION_MAX_ALLOWED >= 70000
-    cropController.preferredContentSize = picker.preferredContentSize;
-#else
-    cropController.contentSizeForViewInPopover = picker.contentSizeForViewInPopover;
-#endif
+    
+    // iOS7+
+    if ([cropController respondsToSelector:@selector(setPreferredContentSize:)]) {
+        cropController.preferredContentSize = picker.preferredContentSize;
+    } else {
+        cropController.contentSizeForViewInPopover = picker.contentSizeForViewInPopover;
+    }
     cropController.sourceImage = [info objectForKey:UIImagePickerControllerOriginalImage];
     cropController.resizeableCropArea = self.resizeableCropArea;
     cropController.cropSize = self.cropSize;
@@ -122,7 +134,10 @@
 
 - (void)presentImagePickerController
 {
-    if (UI_USER_INTERFACE_IDIOM() == UIUserInterfaceIdiomPad) {
+    // we use popover only if a) we are on iPad and b) we don't prefer full screen or c) system version is less than 7
+    _usePopover = UI_USER_INTERFACE_IDIOM() == UIUserInterfaceIdiomPad && (!self.preferFullScreen || SYSTEM_VERSION_LESS_THAN(@"7.0"));
+    
+    if (_usePopover) {
         
         self.popoverController = [[UIPopoverController alloc] initWithContentViewController:self.imagePickerController];
         [self.popoverController presentPopoverFromRect:self.popoverView.frame

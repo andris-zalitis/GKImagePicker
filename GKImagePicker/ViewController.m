@@ -35,6 +35,7 @@
     self.imagePicker = [[GKImagePicker alloc] init];
     self.imagePicker.cropSize = CGSizeMake(320, 496);
     self.imagePicker.delegate = self;
+    self.imagePicker.preferFullScreen = YES;
     
     [self.imagePicker showActionSheetOnViewController:self onPopoverFromView:btn];
 }

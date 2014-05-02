@@ -98,16 +98,17 @@
     CGSize constrainedSize = CGSizeMake(320.f, TOOLBAR_HEIGHT);
     CGSize neededSize = CGSizeMake(0, 0);
 
-#if __IPHONE_OS_VERSION_MAX_ALLOWED >= 70000
-    neededSize = [string boundingRectWithSize:constrainedSize
-                                      options:NSStringDrawingUsesLineFragmentOrigin
-                                   attributes:attributes
-                                      context:nil].size;
-#else
-    neededSize = [string sizeWithFont:font
-                        constrainedToSize:constrainedSize
-                        lineBreakMode:NSLineBreakByTruncatingMiddle];
-#endif
+    // iOS7+
+    if ([string respondsToSelector:@selector(boundingRectWithSize:options:attributes:context:)]) {
+        neededSize = [string boundingRectWithSize:constrainedSize
+                                          options:NSStringDrawingUsesLineFragmentOrigin
+                                       attributes:attributes
+                                          context:nil].size;
+    } else {
+        neededSize = [string sizeWithFont:font
+                            constrainedToSize:constrainedSize
+                            lineBreakMode:NSLineBreakByTruncatingMiddle];
+    }
     return CGSizeMake(neededSize.width, TOOLBAR_HEIGHT);
 }
 
@@ -207,6 +208,8 @@
     [super viewWillLayoutSubviews];
     
     self.imageCropView.frame = self.view.bounds;
+    // only now we have the real size of our view, so setting this here is crucial for popovers
+    [self.imageCropView setCropSize:[self normalizedCropSizeForRect:self.view.bounds]];
     self.toolbarView.frame = CGRectMake(0, CGRectGetHeight(self.view.frame) - TOOLBAR_HEIGHT, 320, TOOLBAR_HEIGHT);
 }
 
