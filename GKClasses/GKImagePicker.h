@@ -20,6 +20,8 @@
 
 - (void)showActionSheetOnViewController:(UIViewController *)viewController onPopoverFromView:(UIView *)popoverView;
 
+- (void)showImagePickerOnViewController:(UIViewController *)viewController onPopoverFromView:(UIView *)popoverView withGallerySource:(BOOL)sourceIsGallery;
+
 @end
 
 

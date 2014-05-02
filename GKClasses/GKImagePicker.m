@@ -152,6 +152,18 @@
     }
 }
 
+- (void)showImagePickerOnViewController:(UIViewController *)viewController onPopoverFromView:(UIView *)popoverView withGallerySource:(BOOL)sourceIsGallery
+{
+    self.presentingViewController = viewController;
+    self.popoverView = popoverView;
+    
+    if (sourceIsGallery) {
+        [self showGalleryImagePicker];
+    } else {
+        [self showCameraImagePicker];
+    }
+}
+
 - (void)showCameraImagePicker {
 
 #if TARGET_IPHONE_SIMULATOR
